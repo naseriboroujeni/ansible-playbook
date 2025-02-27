@@ -1,0 +1,168 @@
+---
+- name: Set up personal OS
+  hosts: localhost
+  become: yes
+
+  tasks:
+    # System Tools
+    - name: Update and upgrade system packages
+      apt:
+        update_cache: yes
+        upgrade: yes
+
+    # Git Configuration
+    - name: Set Git user name
+      command: git config --global user.name "naseriboroujeni"
+
+    - name: Set Git user email
+      command: git config --global user.email "naseriboroujeni@gmail.com"
+
+    # Install OpenJDK 21
+    - name: Install OpenJDK 21
+      apt:
+        name: openjdk-21-jdk
+        state: present
+
+    # Install Node.js and npm
+    - name: Install Node.js and npm
+      apt:
+        name:
+          - nodejs
+          - npm
+        state: present
+
+    # Install Rust using rustup
+    - name: Install Rust using rustup
+      shell: |
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      args:
+        creates: ~/.cargo/bin/rustc
+
+    - name: Ensure Rust is up to date
+      shell: ~/.cargo/bin/rustup update
+      args:
+        executable: /bin/bash
+
+    # Download and install WasmEdge
+    - name: Download and install WasmEdge
+      shell: |
+        curl -sSf https://raw.githubusercontent.com/WasmEdge/WasmEdge/master/utils/install.sh | bash
+      args:
+        creates: /usr/local/bin/wasmedge
+
+    # Install Docker
+    - name: Install required dependencies for Docker
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+
+    - name: Add Docker's official GPG key
+      shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+    - name: Add Docker APT repository
+      shell: echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: yes
+
+    - name: Add user to Docker group (optional)
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    # Run PostgreSQL in Docker container
+    - name: Pull PostgreSQL Docker image
+      docker_image:
+        name: postgres
+        source: pull
+
+    - name: Create PostgreSQL container
+      docker_container:
+        name: postgres_container
+        image: postgres
+        state: started
+        restart_policy: always
+        exposed_ports:
+          - "5432"
+        published_ports:
+          - "5432:5432"
+        env:
+          POSTGRES_USER: postgres_user
+          POSTGRES_PASSWORD: postgres_password
+          POSTGRES_DB: postgres_db
+
+    # Development Tools
+    - name: Install DBeaver Community
+      shell: |
+        wget -qO- https://dbeaver.io/files/dbeaver-ce_latest_amd64.deb -O dbeaver.deb
+        sudo dpkg -i dbeaver.deb
+        sudo apt-get install -f
+      args:
+        creates: /opt/dbeaver
+
+    - name: Install Visual Studio Code
+      shell: |
+        wget -qO- https://packages.microsoft.com/repos/vscode/pool/main/c/code/code_1.79.0-1687629204_amd64.deb -O vscode.deb
+        sudo dpkg -i vscode.deb
+        sudo apt-get install -f
+      args:
+        creates: /usr/share/code
+
+    - name: Install IntelliJ Community Edition
+      shell: |
+        wget -qO- https://download.jetbrains.com/idea/ideaIC-2025.1.tar.gz -O intellij.tar.gz
+        tar -xzf intellij.tar.gz -C /opt
+      args:
+        creates: /opt/idea-IC*
+
+    - name: Install RustRover
+      shell: |
+        wget -qO- https://download.jetbrains.com/rust/rustRover-2025.1.tar.gz -O rustrover.tar.gz
+        tar -xzf rustrover.tar.gz -C /opt
+      args:
+        creates: /opt/rustRover
+
+    # Media Tools
+    - name: Install Google Chrome
+      shell: |
+        wget -qO google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+        sudo dpkg -i google-chrome.deb
+        sudo apt-get install -f
+      args:
+        creates: /opt/google/chrome
+
+    - name: Install VLC
+      apt:
+        name: vlc
+        state: present
+
+    - name: Install Cheese
+      apt:
+        name: cheese
+        state: present
+
+    # Install Microsoft Teams using Snap
+    - name: Install Microsoft Teams using Snap
+      snap:
+        name: teams
+        state: present
+
+    # Install Postman using Snap
+    - name: Install Postman using Snap
+      snap:
+        name: postman
+        state: present
