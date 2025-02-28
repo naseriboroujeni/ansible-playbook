@@ -22,6 +22,19 @@
           - build-essential
         state: present
 
+    # Install Snap
+    - name: Install Snap package manager
+      apt:
+        name: snapd
+        state: present
+        update_cache: yes
+
+    - name: Ensure Snap service is started and enabled
+      systemd:
+        name: snapd
+        enabled: yes
+        state: started
+
     # 3️⃣ Configure Git
     - name: Configure Git username and email
       shell: |
@@ -63,12 +76,9 @@
         classic: yes
 
     - name: Install RustRover
-      shell: |
-        wget -O rustrover.tar.gz https://download.jetbrains.com/rustrover/RustRover-233.13019.22.tar.gz
-        tar -xzf rustrover.tar.gz -C /opt/
-        rm rustrover.tar.gz
-      args:
-        creates: /opt/RustRover-233.13019.22
+      snap:
+        name: rustrover
+        classic: yes
 
     - name: Install DBeaver Community Edition
       snap:
@@ -80,7 +90,7 @@
 
     - name: Install Microsoft Teams (Linux)
       snap:
-        name: teams
+        name: teams-for-linux
         classic: yes
 
     # 6️⃣ Install Multimedia Apps
