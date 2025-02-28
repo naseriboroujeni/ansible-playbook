@@ -59,10 +59,22 @@
       args:
         creates: /home/{{ ansible_user_id }}/.cargo/bin/rustc
 
+    - name: Add Rust to PATH
+      lineinfile:
+        path: /home/{{ ansible_user_id }}/.bashrc
+        line: 'export PATH="$HOME/.cargo/bin:$PATH"'
+        create: yes
+
     - name: Install WasmEdge
       shell: curl -sSf https://raw.githubusercontent.com/WasmEdge/WasmEdge/master/utils/install.sh | bash
       args:
         creates: /usr/local/bin/wasmedge
+
+    - name: Add WasmEdge to PATH
+      lineinfile:
+        path: /home/{{ ansible_user_id }}/.bashrc
+        line: 'export PATH="$HOME/.wasmedge/env:$PATH"'
+        create: yes
 
     # 5️⃣ Install Development Tools
     - name: Install VS Code
