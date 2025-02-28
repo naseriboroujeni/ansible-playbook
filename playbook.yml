@@ -125,6 +125,10 @@
         name: cheese
         state: present
 
+    - name: Install Telegram Desktop
+      snap:
+        name: telegram-desktop
+
     # 7️⃣ Install Docker & PostgreSQL Container
     - name: Install Docker
       apt:
