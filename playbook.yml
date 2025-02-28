@@ -15,6 +15,7 @@
       apt:
         name:
           - git
+          - htop
           - curl
           - wget
           - net-tools
@@ -58,23 +59,13 @@
       shell: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
       args:
         creates: /home/{{ ansible_user_id }}/.cargo/bin/rustc
-
-    - name: Add Rust to PATH
-      lineinfile:
-        path: /home/{{ ansible_user_id }}/.bashrc
-        line: 'export PATH="$HOME/.cargo/bin:$PATH"'
-        create: yes
+      become: no
 
     - name: Install WasmEdge
       shell: curl -sSf https://raw.githubusercontent.com/WasmEdge/WasmEdge/master/utils/install.sh | bash
       args:
         creates: /usr/local/bin/wasmedge
-
-    - name: Add WasmEdge to PATH
-      lineinfile:
-        path: /home/{{ ansible_user_id }}/.bashrc
-        line: 'export PATH="$HOME/.wasmedge/env:$PATH"'
-        create: yes
+      become: no
 
     # 5️⃣ Install Development Tools
     - name: Install VS Code
@@ -129,6 +120,9 @@
       snap:
         name: telegram-desktop
 
+    - name: Set GNOME Dark Theme
+      shell: "gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'"
+
     # 7️⃣ Install Docker & PostgreSQL Container
     - name: Install Docker
       apt:
@@ -154,28 +148,3 @@
           - gnome-shell-extensions
           - chrome-gnome-shell
         state: present
-
-    - name: Install gnome-extensions-cli
-      shell: |
-        wget -O gnome-extensions-cli \
-        https://github.com/essembeh/gnome-extensions-cli/releases/latest/download/gnome-extensions-cli
-        chmod +x gnome-extensions-cli
-        mv gnome-extensions-cli /usr/local/bin/
-      args:
-        creates: /usr/local/bin/gnome-extensions-cli
-
-    - name: Install Dash to Panel
-      shell: "gnome-extensions-cli install dash-to-panel@jderose9.github.com"
-
-    - name: Install Clipboard Indicator
-      shell: "gnome-extensions-cli install clipboard-indicator@tudmotu.com"
-
-    - name: Enable Dash to Panel
-      shell: "gnome-extensions enable dash-to-panel@jderose9.github.com"
-
-    - name: Enable Clipboard Indicator
-      shell: "gnome-extensions enable clipboard-indicator@tudmotu.com"
-
-    - name: Restart GNOME Shell (needed for changes to take effect)
-      shell: "killall -SIGQUIT gnome-shell"
-      ignore_errors: yes
