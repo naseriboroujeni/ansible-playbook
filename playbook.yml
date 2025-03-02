@@ -4,13 +4,12 @@
   become: yes
 
   tasks:
-    # 1️⃣ System Update & Upgrade
+    # 1️⃣ System Preparation
     - name: Update and upgrade system packages
       apt:
         update_cache: yes
         upgrade: dist
 
-    # 2️⃣ Install Essential System Tools
     - name: Install essential system tools
       apt:
         name:
@@ -23,12 +22,11 @@
           - build-essential
         state: present
 
-    # Install Snap
+    # 2️⃣ Install Package Managers
     - name: Install Snap package manager
       apt:
         name: snapd
         state: present
-        update_cache: yes
 
     - name: Ensure Snap service is started and enabled
       systemd:
@@ -36,13 +34,12 @@
         enabled: yes
         state: started
 
-    # 3️⃣ Configure Git
+    # 3️⃣ Configure Development Environment
     - name: Configure Git username and email
       shell: |
         git config --global user.name "naseriboroujeni"
         git config --global user.email "naseriboroujeni@gmail.com"
 
-    # 4️⃣ Install Programming Languages & Runtimes
     - name: Install OpenJDK 21
       apt:
         name: openjdk-21-jdk
@@ -67,64 +64,62 @@
         creates: /usr/local/bin/wasmedge
       become: no
 
-    # 5️⃣ Install Development Tools
-    - name: Install VS Code
+    # 4️⃣ Install Development Tools
+    - name: Install IDEs and Tools via Snap
       snap:
-        name: code
+        name: "{{ item }}"
         classic: yes
+      loop:
+        - code # VS Code
+        - intellij-idea-community
+        - rustrover
 
-    - name: Install IntelliJ IDEA Community Edition
+    - name: Install Database & API Tools
       snap:
-        name: intellij-idea-community
-        classic: yes
+        name:
+          - dbeaver-ce
+          - postman
 
-    - name: Install RustRover
-      snap:
-        name: rustrover
-        classic: yes
-
-    - name: Install DBeaver Community Edition
-      snap:
-        name: dbeaver-ce
-
-    - name: Install Postman
-      snap:
-        name: postman
-
+    # 5️⃣ Install Communication & Multimedia Tools
     - name: Install Microsoft Teams (Linux)
       snap:
         name: teams-for-linux
         classic: yes
-    
-    - name: Install Anydesk
-      apt:
-        name: anydesk
-        state: present
-
-    # 6️⃣ Install Multimedia Apps
-    - name: Install Google Chrome
-      shell: |
-        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
-        echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' | tee /etc/apt/sources.list.d/google-chrome.list
-        apt update
-        apt install -y google-chrome-stable
-      args:
-        creates: /usr/bin/google-chrome
-
-    - name: Install VLC
-      apt:
-        name: vlc
-        state: present
-
-    - name: Install Cheese (Camera App)
-      apt:
-        name: cheese
-        state: present
 
     - name: Install Telegram Desktop
       snap:
         name: telegram-desktop
 
+    - name: Install VLC & Cheese
+      apt:
+        name:
+          - vlc
+          - cheese
+        state: present
+
+    # 6️⃣ Install Browsers & Remote Access Tools
+    - name: Add repository keys for Chrome & AnyDesk
+      shell: |
+        wget -qO - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
+        wget -qO - https://keys.anydesk.com/repos/DEB-GPG-KEY | gpg --dearmor -o /usr/share/keyrings/anydesk.gpg
+
+    - name: Add repositories for Chrome & AnyDesk
+      shell: |
+        echo "deb [signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list
+        echo "deb [signed-by=/usr/share/keyrings/anydesk.gpg] http://deb.anydesk.com/ all main" | tee /etc/apt/sources.list.d/anydesk.list
+
+    - name: Update APT cache
+      apt:
+        update_cache: yes
+
+    - name: Install Google Chrome & AnyDesk
+      apt:
+        name:
+          - google-chrome-stable
+          - anydesk
+        state: present
+
+    # 7️⃣ Configure Desktop Environment
     - name: Set GNOME Dark Theme
       shell: |
         export DISPLAY=:0
@@ -135,7 +130,14 @@
         DISPLAY: ":0"
         XAUTHORITY: "/home/{{ ansible_user_id }}/.Xauthority"
 
-    # 7️⃣ Install Docker & PostgreSQL Container
+    - name: Install GNOME Shell Extensions and Dependencies
+      apt:
+        name:
+          - gnome-shell-extensions
+          - chrome-gnome-shell
+        state: present
+
+    # 8️⃣ Install Docker & PostgreSQL Container
     - name: Install Docker
       apt:
         name: docker.io
@@ -152,11 +154,3 @@
         docker run --name postgres -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=admin -p 5432:5432 -d postgres
       args:
         creates: /var/lib/docker/containers
-
-    # 8️⃣ Install GNOME Extensions
-    - name: Install GNOME Shell Extensions and Dependencies
-      apt:
-        name:
-          - gnome-shell-extensions
-          - chrome-gnome-shell
-        state: present
