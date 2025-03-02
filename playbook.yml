@@ -12,15 +12,27 @@
 
     - name: Install essential system tools
       apt:
-        name:
-          - git
-          - htop
-          - curl
-          - wget
-          - net-tools
-          - libssl-dev
-          - build-essential
+        name: "{{ item }}"
         state: present
+      loop:
+        - git
+        - htop
+        - curl
+        - wget
+        - net-tools
+        - libssl-dev
+        - build-essential
+
+    - name: Create personal directories
+      file:
+        path: "/home/{{ ansible_user_id }}/{{ item }}"
+        state: directory
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_id }}"
+        mode: "0755"
+      loop:
+        - resume
+        - develop
 
     # 2️⃣ Install Package Managers
     - name: Install Snap package manager
@@ -47,10 +59,11 @@
 
     - name: Install Node.js and npm
       apt:
-        name:
-          - nodejs
-          - npm
+        name: "{{ item }}"
         state: present
+      loop:
+        - nodejs
+        - npm
 
     - name: Install Rust using rustup
       shell: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -76,9 +89,10 @@
 
     - name: Install Database & API Tools
       snap:
-        name:
-          - dbeaver-ce
-          - postman
+        name: "{{ item }}"
+      loop:
+        - dbeaver-ce
+        - postman
 
     # 5️⃣ Install Communication & Multimedia Tools
     - name: Install Microsoft Teams (Linux)
@@ -92,10 +106,11 @@
 
     - name: Install VLC & Cheese
       apt:
-        name:
-          - vlc
-          - cheese
+        name: "{{ item }}"
         state: present
+      loop:
+        - vlc
+        - cheese
 
     # 6️⃣ Install Browsers & Remote Access Tools
     - name: Add repository keys for Chrome & AnyDesk
@@ -114,10 +129,11 @@
 
     - name: Install Google Chrome & AnyDesk
       apt:
-        name:
-          - google-chrome-stable
-          - anydesk
+        name: "{{ item }}"
         state: present
+      loop:
+        - google-chrome-stable
+        - anydesk
 
     # 7️⃣ Configure Desktop Environment
     - name: Set GNOME Dark Theme
@@ -132,10 +148,11 @@
 
     - name: Install GNOME Shell Extensions and Dependencies
       apt:
-        name:
-          - gnome-shell-extensions
-          - chrome-gnome-shell
+        name: "{{ item }}"
         state: present
+      loop:
+        - gnome-shell-extensions
+        - chrome-gnome-shell
 
     # 8️⃣ Install Docker & PostgreSQL Container
     - name: Install Docker
@@ -151,6 +168,6 @@
 
     - name: Create a PostgreSQL Docker container
       shell: |
-        docker run --name postgres -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=admin -p 5432:5432 -d postgres
+        docker run --name postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
       args:
         creates: /var/lib/docker/containers
