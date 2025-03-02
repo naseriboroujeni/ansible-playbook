@@ -95,6 +95,11 @@
       snap:
         name: teams-for-linux
         classic: yes
+    
+    - name: Install Anydesk
+      apt:
+        name: anydesk
+        state: present
 
     # 6️⃣ Install Multimedia Apps
     - name: Install Google Chrome
