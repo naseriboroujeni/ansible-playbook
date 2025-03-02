@@ -126,7 +126,14 @@
         name: telegram-desktop
 
     - name: Set GNOME Dark Theme
-      shell: "gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'"
+      shell: |
+        export DISPLAY=:0
+        export XAUTHORITY=/home/{{ ansible_user_id }}/.Xauthority
+        gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+      become: no
+      environment:
+        DISPLAY: ":0"
+        XAUTHORITY: "/home/{{ ansible_user_id }}/.Xauthority"
 
     # 7️⃣ Install Docker & PostgreSQL Container
     - name: Install Docker
