@@ -2,6 +2,8 @@
 - name: Personal OS Setup
   hosts: localhost
   become: yes
+  vars:
+    ansible_user_id: saeed
 
   tasks:
     # 1️⃣ System Preparation
