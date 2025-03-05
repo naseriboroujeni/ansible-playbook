@@ -24,6 +24,7 @@
         - net-tools
         - libssl-dev
         - build-essential
+        - vim
 
     - name: Create personal directories
       file:
